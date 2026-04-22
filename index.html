@@ -1,180 +1,847 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clasificador Ambiental MARN 402-2021 - 773 Actividades</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0f2f1, #a5d6a7); margin:0; padding:20px; color:#1b5e20; }
-        .container { max-width: 1300px; margin:auto; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2); overflow:hidden; }
-        header { background:#2e7d32; color:white; padding:25px; text-align:center; }
-        h1 { margin:0; font-size:2.4em; }
-        .tabs { display:flex; background:#e8f5e9; border-bottom:1px solid #c8e6c9; flex-wrap:wrap; }
-        .tab { padding:15px 25px; cursor:pointer; font-weight:bold; }
-        .tab.active { background:#2e7d32; color:white; }
-        .content { padding:30px; }
-        input { width:100%; padding:14px; border:2px solid #4caf50; border-radius:8px; font-size:1.1em; margin-bottom:15px; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:15px; }
-        .card { border:1px solid #c8e6c9; border-radius:10px; padding:15px; cursor:pointer; transition:0.3s; }
-        .card:hover { box-shadow:0 5px 15px rgba(46,125,50,0.3); transform:translateY(-3px); }
-        .resultado { background:#f1f8e9; padding:25px; border-radius:12px; margin-top:20px; }
-        button { background:#2e7d32; color:white; padding:14px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:10px; }
-        button:hover { background:#1b5e20; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clasificador Ambiental MARN — Guatemala (AM 402-2021)</title>
+<style>
+  :root {
+    --brand: #1f6f43;
+    --brand-dark: #13502f;
+    --bg: #f4f7f5;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --cat-C: #10b981;
+    --cat-CPGA: #22c55e;
+    --cat-B2: #eab308;
+    --cat-B1: #f97316;
+    --cat-A: #ef4444;
+    --warn: #fef3c7;
+    --warn-border: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: white;
+    padding: 28px 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; font-weight: 600; }
+  header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .step {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  .step.active { background: var(--brand); color: white; border-color: var(--brand); font-weight: 600; }
+  .step.done { background: #e8f5ee; color: var(--brand-dark); border-color: var(--brand); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h2 { margin: 0 0 12px; font-size: 1.15rem; }
+
+  .search-box {
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    font-size: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--brand); }
+  .search-box .icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+  .search-hint {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 6px 0 0;
+  }
+
+  .results {
+    margin-top: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .result-item {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: white;
+  }
+  .result-item:hover {
+    border-color: var(--brand);
+    box-shadow: 0 2px 8px rgba(31,111,67,0.12);
+    transform: translateY(-1px);
+  }
+  .result-title { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .result-meta { font-size: 0.85rem; color: var(--muted); }
+  .result-meta .badge {
+    display: inline-block;
+    background: #e8f5ee;
+    color: var(--brand-dark);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-right: 6px;
+    font-weight: 600;
+  }
+  .result-score {
+    float: right;
+    font-size: 0.78rem;
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .empty { padding: 30px; text-align: center; color: var(--muted); }
+
+  label { display: block; margin: 12px 0 6px; font-weight: 600; font-size: 0.9rem; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+  }
+  input[readonly] { background: #f9fafb; color: var(--muted); }
+  input:focus, select:focus, textarea:focus { border-color: var(--brand); }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 18px;
+    background: var(--brand);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--brand-dark); }
+  .btn.secondary { background: white; color: var(--brand); border: 1.5px solid var(--brand); }
+  .btn.secondary:hover { background: #f0faf4; }
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+  .category-result {
+    text-align: center;
+    padding: 24px;
+    border-radius: 14px;
+    color: white;
+    margin-bottom: 16px;
+  }
+  .category-result .cat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 4px;
+  }
+  .category-result .cat-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 6px 0 10px;
+  }
+  .category-result .confidence {
+    font-size: 1.1rem;
+    opacity: 0.95;
+  }
+  .category-result .confidence strong { font-size: 1.35rem; }
+
+  .cat-C { background: linear-gradient(135deg, #10b981, #059669); }
+  .cat-CPGA { background: linear-gradient(135deg, #22c55e, #16a34a); }
+  .cat-B2 { background: linear-gradient(135deg, #eab308, #ca8a04); }
+  .cat-B1 { background: linear-gradient(135deg, #f97316, #ea580c); }
+  .cat-A { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .cat-NONE { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .detail-grid > div {
+    padding: 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+  }
+  .detail-grid label {
+    margin: 0 0 4px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .detail-grid .val { font-weight: 500; }
+
+  .umbral-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+  .umbral-table th, .umbral-table td {
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .umbral-table th { background: #f3f4f6; font-weight: 600; }
+  .umbral-table td.selected { background: #fef9c3; font-weight: 700; }
+
+  .warning {
+    background: var(--warn);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    font-size: 0.9rem;
+  }
+
+  .confidence-breakdown {
+    margin-top: 14px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .confidence-breakdown h4 {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .conf-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+  }
+  .conf-bar-label { min-width: 180px; font-size: 0.82rem; }
+  .conf-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .conf-bar-fill {
+    height: 100%;
+    background: var(--brand);
+    transition: width 0.5s;
+  }
+  .conf-bar-value { font-size: 0.82rem; font-weight: 600; min-width: 40px; text-align: right; }
+
+  .loader { text-align: center; padding: 40px; color: var(--muted); }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .conf-bar-label { min-width: 120px; font-size: 0.75rem; }
+    header h1 { font-size: 1.3rem; }
+  }
+</style>
 </head>
 <body>
-<div class="container">
-    <header>
-        <h1>🌱 Clasificador Oficial MARN 402-2021</h1>
-        <p>773 actividades del Listado Taxativo • Búsqueda inteligente con cualquier palabra</p>
-    </header>
 
-    <div class="tabs" id="tabs"></div>
+<header>
+  <h1>🌿 Clasificador Ambiental MARN</h1>
+  <p>Determina la categoría de tu instrumento ambiental según el Listado Taxativo AM 402-2021</p>
+</header>
 
-    <div class="content">
-        <input type="text" id="searchInput" placeholder="Escribe cualquier palabra: caña, ganado, café, gasolinera, laboratorio, hotel..." onkeyup="if(event.key==='Enter') filtrarActividades()">
-        <div class="grid" id="actividadesGrid"></div>
+<main>
+
+  <div class="step-indicator">
+    <div class="step active" id="step-1">1. Buscar actividad</div>
+    <div class="step" id="step-2">2. Confirmar datos</div>
+    <div class="step" id="step-3">3. Indicar magnitud</div>
+    <div class="step" id="step-4">4. Resultado</div>
+  </div>
+
+  <!-- STEP 1: SEARCH -->
+  <section class="card" id="section-search">
+    <h2>🔎 Paso 1 — Buscar tu actividad</h2>
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="Escribe una palabra: hotel, gasolinera, beneficio, avícola, cemento..." autofocus>
+    </div>
+    <p class="search-hint">
+      Puedes buscar por palabra clave, tipo de negocio, CIIU, sector, material o proceso.
+      Ejemplos: <em>“hotel”</em>, <em>“textil”</em>, <em>“carretera”</em>, <em>“relleno sanitario”</em>, <em>“café”</em>.
+    </p>
+    <div class="results" id="results">
+      <div class="empty" id="emptyState">Escribe una palabra para comenzar…</div>
+    </div>
+  </section>
+
+  <!-- STEP 2: CONFIRM -->
+  <section class="card" id="section-confirm" style="display:none">
+    <h2>✅ Paso 2 — Confirma los datos de tu actividad</h2>
+    <p class="search-hint">Verifica que estos datos correspondan a tu proyecto. Puedes ajustarlos si es necesario.</p>
+
+    <label for="fld-actividad">Actividad económica</label>
+    <input id="fld-actividad" type="text">
+
+    <label for="fld-factor">Factor de impacto</label>
+    <input id="fld-factor" type="text">
+
+    <label for="fld-unidad">Unidad de medida</label>
+    <input id="fld-unidad" type="text">
+
+    <div class="detail-grid">
+      <div><label>Sector</label><div class="val" id="info-sector"></div></div>
+      <div><label>Subsector</label><div class="val" id="info-subsector"></div></div>
+      <div><label>CIIU-4</label><div class="val" id="info-ciiu"></div></div>
+      <div><label>ID</label><div class="val" id="info-id"></div></div>
     </div>
 
-    <div id="detalle" style="display:none; padding:30px;">
-        <h2>Paso 2: Ingresa la escala de tu proyecto</h2>
-        <p id="actividadSeleccionada" style="font-size:1.3em;"></p>
-        <label>Unidad de medida: <strong id="unidadMedida"></strong></label><br>
-        <input type="number" id="valorEscala" placeholder="Ej: 120 (hectáreas), 450 (unidades animales)...">
-        <button onclick="determinarCategoria()">Determinar Categoría del Instrumento</button>
+    <div class="btn-row">
+      <button class="btn secondary" onclick="goToStep(1)">← Volver a buscar</button>
+      <button class="btn" onclick="goToStep(3)">Continuar →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: MAGNITUDE -->
+  <section class="card" id="section-magnitude" style="display:none">
+    <h2>📏 Paso 3 — Magnitud de tu proyecto</h2>
+    <p class="search-hint">Indica la magnitud de tu proyecto según la unidad que corresponda.</p>
+
+    <div id="thresholdTable"></div>
+
+    <label for="fld-magnitud">Magnitud numérica (<span id="unidad-label">valor</span>)</label>
+    <input id="fld-magnitud" type="number" step="any" placeholder="Ej. 500">
+
+    <label for="fld-descripcion">Descripción breve de tu proyecto (opcional, ayuda a refinar la confianza)</label>
+    <textarea id="fld-descripcion" rows="2" placeholder="Ej. Hotel de turismo en Antigua, 20 habitaciones, ocupación media..."></textarea>
+
+    <div class="btn-row">
+      <button class="btn secondary" onclick="goToStep(2)">← Anterior</button>
+      <button class="btn" onclick="calculate()">Calcular categoría</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: RESULT -->
+  <section id="section-result" style="display:none">
+    <div class="category-result" id="catResult">
+      <div class="cat-label">Categoría del instrumento ambiental</div>
+      <div class="cat-value" id="catValue">—</div>
+      <div class="confidence">Confianza IA: <strong id="catConfidence">—%</strong></div>
     </div>
 
-    <div id="categoriaFinal" style="display:none;" class="resultado">
-        <h2>✅ Categoría determinada según AM 402-2021</h2>
-        <p><strong>Actividad:</strong> <span id="catActividad"></span></p>
-        <p><strong>Categoría:</strong> <span id="catFinal" style="font-size:1.6em; font-weight:bold; color:#d32f2f;"></span></p>
-        <p><strong>Instrumento Ambiental requerido:</strong> <span id="instrumento"></span></p>
-        <button onclick="mostrarFormularioInfo()">Continuar → Ingresar información del proyecto</button>
+    <div class="card">
+      <h2>📋 Detalle</h2>
+      <div class="detail-grid">
+        <div><label>Actividad</label><div class="val" id="res-actividad"></div></div>
+        <div><label>Sector / Subsector</label><div class="val" id="res-sector"></div></div>
+        <div><label>CIIU-4</label><div class="val" id="res-ciiu"></div></div>
+        <div><label>Magnitud</label><div class="val" id="res-magnitud"></div></div>
+        <div><label>Factor de impacto</label><div class="val" id="res-factor"></div></div>
+        <div><label>Unidad de medida</label><div class="val" id="res-unidad"></div></div>
+      </div>
+
+      <div id="res-umbrales"></div>
+
+      <div id="res-warnings"></div>
+
+      <div class="confidence-breakdown" id="confBreakdown"></div>
+
+      <div class="btn-row">
+        <button class="btn secondary" onclick="goToStep(1)">🔄 Nueva búsqueda</button>
+        <button class="btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
+      </div>
     </div>
 
-    <div id="formularioInfo" style="display:none; padding:30px;">
-        <h2>Paso 3: Ingresa la información necesaria</h2>
-        <label>Nombre del proyecto / actividad</label><input type="text" id="nombreProyecto">
-        <label>Nombre del proponente / empresa</label><input type="text" id="nombreProponente">
-        <label>Ubicación (municipio y departamento)</label><input type="text" id="ubicacion">
-        <label>Descripción breve del proyecto</label><textarea id="descripcionProyecto" rows="3"></textarea>
-        <label>Teléfono / correo de contacto</label><input type="text" id="contacto">
-        <button onclick="generarResumen()">Generar Resumen Final (descargable)</button>
+    <div class="card" style="font-size:0.85rem;color:var(--muted)">
+      <strong>Base legal:</strong> Acuerdo Ministerial 402-2021 del MARN, Guatemala.
+      Esta herramienta es de apoyo y no reemplaza el criterio formal del MARN
+      ni de un consultor ambiental registrado. Confirma siempre la categoría
+      con la normativa vigente.
     </div>
+  </section>
 
-    <div id="resumenFinal" style="display:none;" class="resultado">
-        <h2>Resumen del Instrumento Ambiental</h2>
-        <pre id="textoResumen" style="white-space: pre-wrap; font-size:1.1em;"></pre>
-        <button onclick="descargarPDF()">⬇️ Descargar como TXT</button>
-        <button onclick="window.location.reload()">Nueva consulta</button>
-    </div>
-</div>
+  <div class="loader" id="loader">Cargando catálogo…</div>
+
+</main>
+
+<footer>
+  Datos: Listado Taxativo AM 402-2021 · 773 actividades · 14 sectores · Hecho para consultores ambientales de Guatemala
+</footer>
 
 <script>
-// ==================== BASE DE DATOS COMPLETA - 773 ACTIVIDADES DEL EXCEL MAESTRO ====================
-const listadoTaxativo = [
-    {id:"01-A-001", sector:"AGRÍCOLA", actividad:"Cultivo de caña de azúcar", descripcion:"Siembra, producción y cosecha de caña de azúcar (producción agrícola de ingenios)", unidad:"Hectárea", catC:"", catC_PGA:"", catB2:"", catB1:"", catA:""},
-    {id:"01-A-002", sector:"AGRÍCOLA", actividad:"Cultivo de caña de azúcar", descripcion:"Siembra, producción y cosecha de caña de azúcar (productores independientes)", unidad:"Hectárea", catC:"≤250", catC_PGA:"", catB2:">250", catB1:">600", catA:""},
-    {id:"01-A-003", sector:"AGRÍCOLA", actividad:"Cultivo de banano", descripcion:"Siembra, producción y cosecha de banano", unidad:"Hectárea", catC:"", catC_PGA:"", catB2:"≤35", catB1:">35", catA:">500"},
-    {id:"01-A-004", sector:"AGRÍCOLA", actividad:"Cultivo de plátano", descripcion:"Siembra, producción y cosecha de plátano", unidad:"Hectárea", catC:"≤35", catC_PGA:"", catB2:">35", catB1:"", catA:""},
-    {id:"01-A-005", sector:"AGRÍCOLA", actividad:"Cultivo de té", descripcion:"Siembra, producción y cosecha de té", unidad:"Hectárea", catC:">45", catC_PGA:"", catB2:"", catB1:"", catA:""},
-    {id:"01-A-006", sector:"AGRÍCOLA", actividad:"Cultivo de palma de aceite", descripcion:"Siembra, producción y cosecha de palma de aceite", unidad:"Hectárea", catC:"≤45", catC_PGA:">45", catB2:"500", catB1:">500", catA:""},
-    {id:"01-A-007", sector:"AGRÍCOLA", actividad:"Cultivo de soya", descripcion:"Siembra, producción y cosecha de soya", unidad:"Hectárea", catC:"≤45", catC_PGA:"", catB2:">45", catB1:"300", catA:">300"},
-    {id:"01-A-008", sector:"AGRÍCOLA", actividad:"Cultivo de tabaco", descripcion:"Siembra, producción y cosecha de tabaco", unidad:"Hectárea", catC:"≤10", catC_PGA:">10", catB2:"20", catB1:">20", catA:""},
-    // ... (las 773 actividades completas del Excel Maestro están incluidas en el código real)
-    // Para este mensaje se muestra una parte representativa. El código completo que copiarás contiene todas.
-    {id:"02-A-001", sector:"PRODUCCIÓN ANIMAL", actividad:"Cría de ganado bovino y búfalos", descripcion:"Sistema a pastoreo, subsistema silvopastoril", unidad:"Unidad animal", catC:"≤50", catC_PGA:"51-175", catB2:"176-375", catB1:"376-525", catA:">525"},
-    {id:"06-A-002", sector:"INDUSTRIA", actividad:"Beneficio de café seco", descripcion:"Beneficios de café", unidad:"Toneladas métricas/año", catC_PGA:"≤100", catB2:">100"},
-    {id:"09-C-009", sector:"SERVICIOS", actividad:"Estaciones de servicio y/o gasolineras", descripcion:"Estaciones de servicio y gasolineras", unidad:"Galones de capacidad", catB2:"≤40000", catB1:">40000"},
-    // (El resto de las 773 actividades están cargadas en el código completo que copiarás)
-];
+// ======================================================================
+// STATE
+// ======================================================================
+let DATA = null;
+let currentSelection = null;
+let currentStep = 1;
+let currentResult = null;
 
-const sectores = ["Todos","AGRÍCOLA","PRODUCCIÓN ANIMAL","SILVICULTURA","MINERAL","HIDROCARBUROS","INDUSTRIA","ENERGÍA","TELECOMUNICACIONES","SERVICIOS","INFRAESTRUCTURA, CONSTRUCCIÓN Y VIVIENDA","SANEAMIENTO","SALUD","BIODIVERSIDAD","ÁREAS PROTEGIDAS"];
-
-let sectorActual = "Todos";
-let actividadActual = null;
-
-function crearTabs() {
-    const tabsDiv = document.getElementById("tabs");
-    tabsDiv.innerHTML = "";
-    sectores.forEach(sec => {
-        const tab = document.createElement("div");
-        tab.className = `tab ${sec === sectorActual ? 'active' : ''}`;
-        tab.textContent = sec;
-        tab.onclick = () => { sectorActual = sec; document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); filtrarActividades(); };
-        tabsDiv.appendChild(tab);
-    });
+// ======================================================================
+// INIT
+// ======================================================================
+async function init() {
+  try {
+    const res = await fetch('./data.json');
+    if (!res.ok) throw new Error('No se pudo cargar data.json');
+    DATA = await res.json();
+    document.getElementById('loader').style.display = 'none';
+    setupSearch();
+  } catch (e) {
+    document.getElementById('loader').innerHTML =
+      '<p style="color:#dc2626">❌ Error cargando el catálogo: ' + e.message +
+      '<br><small>Verifica que el archivo <code>data.json</code> esté en el mismo directorio que <code>index.html</code>.</small></p>';
+  }
 }
 
-function filtrarActividades() {
-    const busqueda = document.getElementById("searchInput").value.toLowerCase().trim();
-    const grid = document.getElementById("actividadesGrid");
-    grid.innerHTML = "";
+// ======================================================================
+// SEARCH
+// ======================================================================
+function normalize(s) {
+  return (s || '').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
 
-    const filtrados = listadoTaxativo.filter(item => {
-        const coincideSector = sectorActual === "Todos" || item.sector === sectorActual;
-        const coincideTexto = !busqueda || 
-            (item.actividad && item.actividad.toLowerCase().includes(busqueda)) ||
-            (item.descripcion && item.descripcion.toLowerCase().includes(busqueda));
-        return coincideSector && coincideTexto;
-    });
-
-    if (filtrados.length === 0) {
-        grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:20px;">No se encontraron actividades.<br>Prueba otras palabras o cambia de pestaña.</p>`;
-        return;
+function scoreActivity(act, tokens) {
+  // Build searchable fields with weights
+  const fields = [
+    { text: normalize(act.actividad_economica), weight: 5 },
+    { text: normalize(act.descripcion), weight: 4 },
+    { text: normalize(act.factor_impacto), weight: 2 },
+    { text: normalize(act.unidad_medida), weight: 1 },
+    { text: normalize(act.sector), weight: 2 },
+    { text: normalize(act.subsector), weight: 2 },
+    { text: normalize(act.ciiu_4), weight: 3 },
+  ];
+  let total = 0;
+  let matched = 0;
+  for (const tok of tokens) {
+    let hit = 0;
+    for (const f of fields) {
+      if (!f.text) continue;
+      if (f.text === tok) hit = Math.max(hit, f.weight * 3);        // exact field
+      else if (f.text.split(' ').includes(tok)) hit = Math.max(hit, f.weight * 2); // exact word
+      else if (f.text.includes(tok)) hit = Math.max(hit, f.weight);  // substring
     }
-
-    filtrados.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<strong>${item.actividad}</strong><br><small>${item.descripcion || ''}</small><br><small><b>Unidad:</b> ${item.unidad || '-'}</small>`;
-        card.onclick = () => seleccionarActividad(item);
-        grid.appendChild(card);
-    });
+    if (hit > 0) matched++;
+    total += hit;
+  }
+  // Bonus if multiple tokens matched
+  if (tokens.length > 1 && matched === tokens.length) total *= 1.3;
+  return total;
 }
 
-function seleccionarActividad(item) {
-    actividadActual = item;
-    document.getElementById("actividadSeleccionada").innerHTML = `<strong>${item.actividad}</strong> - ${item.descripcion || ''}`;
-    document.getElementById("unidadMedida").textContent = item.unidad || 'No definida';
-    document.getElementById("detalle").style.display = "block";
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  let debounce;
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => runSearch(input.value), 150);
+  });
 }
 
-function determinarCategoria() {
-    const valor = parseFloat(document.getElementById("valorEscala").value);
-    if (!actividadActual || isNaN(valor)) return alert("Ingresa un valor numérico válido");
-    let categoria = "C";
-    let instrumento = "Ficha Ambiental";
-    if (actividadActual.catA && valor > parseFloat(actividadActual.catA || 999999)) { categoria = "A"; instrumento = "Estudio de Impacto Ambiental (EIA) completo"; }
-    else if (actividadActual.catB1 && valor > parseFloat(actividadActual.catB1 || 999999)) { categoria = "B1"; instrumento = "Evaluación Ambiental Inicial categoría B1"; }
-    else if (actividadActual.catB2 && valor > parseFloat(actividadActual.catB2 || 999999)) { categoria = "B2"; instrumento = "Evaluación Ambiental Inicial categoría B2"; }
-    else if (actividadActual.catC_PGA) { categoria = "C + PGA"; instrumento = "Ficha Ambiental + Plan de Gestión Ambiental"; }
-    document.getElementById("catActividad").textContent = actividadActual.actividad;
-    document.getElementById("catFinal").innerHTML = `Categoría <span style="color:#d32f2f;">${categoria}</span>`;
-    document.getElementById("instrumento").textContent = instrumento;
-    document.getElementById("categoriaFinal").style.display = "block";
-    document.getElementById("detalle").style.display = "none";
+function runSearch(query) {
+  const container = document.getElementById('results');
+  const q = normalize(query);
+  if (!q) {
+    container.innerHTML = '<div class="empty" id="emptyState">Escribe una palabra para comenzar…</div>';
+    return;
+  }
+  const tokens = q.split(' ').filter(t => t.length >= 2);
+  if (!tokens.length) {
+    container.innerHTML = '<div class="empty">Escribe al menos 2 caracteres…</div>';
+    return;
+  }
+  const scored = DATA.actividades
+    .map(a => ({ act: a, score: scoreActivity(a, tokens) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 30);
+
+  if (!scored.length) {
+    container.innerHTML = '<div class="empty">Sin resultados. Prueba con sinónimos u otra palabra clave.</div>';
+    return;
+  }
+  const maxScore = scored[0].score;
+  container.innerHTML = scored.map(({act, score}) => {
+    const rel = Math.round((score / maxScore) * 100);
+    return `
+      <div class="result-item" onclick="selectActivity('${act.id}')">
+        <span class="result-score">${rel}% match</span>
+        <div class="result-title">${escapeHtml(act.actividad_economica || '(sin título)')}</div>
+        <div class="result-meta">
+          <span class="badge">${escapeHtml(act.sector)}</span>
+          <span class="badge">${act.subsector_codigo ? act.subsector_codigo + '. ' : ''}${escapeHtml(act.subsector)}</span>
+          ${act.ciiu_4 ? '<span class="badge">CIIU ' + act.ciiu_4 + '</span>' : ''}
+        </div>
+        ${act.descripcion ? '<div style="margin-top:6px;font-size:0.88rem;color:#4b5563">' + escapeHtml(act.descripcion) + '</div>' : ''}
+      </div>`;
+  }).join('');
 }
 
-function mostrarFormularioInfo() { document.getElementById("formularioInfo").style.display = "block"; document.getElementById("categoriaFinal").style.display = "none"; }
-function generarResumen() {
-    const resumen = `Nombre del proyecto: ${document.getElementById("nombreProyecto").value}\nProponente: ${document.getElementById("nombreProponente").value}\nUbicación: ${document.getElementById("ubicacion").value}\nActividad: ${actividadActual.actividad}\nCategoría: ${document.getElementById("catFinal").innerText}\nInstrumento: ${document.getElementById("instrumento").innerText}\nDescripción: ${document.getElementById("descripcionProyecto").value}\nContacto: ${document.getElementById("contacto").value}\nFecha: ${new Date().toLocaleDateString('es-GT')}`;
-    document.getElementById("textoResumen").textContent = resumen;
-    document.getElementById("resumenFinal").style.display = "block";
-    document.getElementById("formularioInfo").style.display = "none";
-}
-function descargarPDF() {
-    const texto = document.getElementById("textoResumen").textContent;
-    const blob = new Blob([texto], { type: "text/plain" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Resumen_Instrumento_Ambiental_MARN.txt";
-    link.click();
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// Inicializar
-crearTabs();
-filtrarActividades();
+// ======================================================================
+// SELECT
+// ======================================================================
+function selectActivity(id) {
+  const act = DATA.actividades.find(a => a.id === id);
+  if (!act) return;
+  currentSelection = act;
+  // Populate step 2
+  document.getElementById('fld-actividad').value = act.actividad_economica || '';
+  document.getElementById('fld-factor').value = act.factor_impacto || '';
+  document.getElementById('fld-unidad').value = act.unidad_medida || '';
+  document.getElementById('info-sector').textContent = act.sector + ' (' + act.sector_codigo + ')';
+  document.getElementById('info-subsector').textContent = (act.subsector_codigo || '—') + '. ' + (act.subsector || '—');
+  document.getElementById('info-ciiu').textContent = act.ciiu_4 || '—';
+  document.getElementById('info-id').textContent = act.id;
+  goToStep(2);
+}
+
+// ======================================================================
+// STEP NAV
+// ======================================================================
+function goToStep(n) {
+  currentStep = n;
+  ['search','confirm','magnitude','result'].forEach((name, i) => {
+    document.getElementById('section-' + name).style.display = (i + 1 === n) ? '' : 'none';
+  });
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step-' + i);
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+  if (n === 3) prepareStep3();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ======================================================================
+// STEP 3 — MAGNITUDE + THRESHOLDS
+// ======================================================================
+function prepareStep3() {
+  const act = currentSelection;
+  document.getElementById('unidad-label').textContent = document.getElementById('fld-unidad').value || 'valor';
+  renderThresholdTable(act);
+}
+
+function renderThresholdTable(act) {
+  const cats = ['C', 'C_PGA', 'B2', 'B1', 'A'];
+  const labels = { 'C':'C', 'C_PGA':'C + PGA', 'B2':'B2', 'B1':'B1', 'A':'A' };
+  let rows = '<tr>' + cats.map(c => `<th>${labels[c]}</th>`).join('') + '</tr>';
+  rows += '<tr>' + cats.map(c => {
+    const u = act.umbrales[c] || {};
+    const txt = formatRange(u);
+    return `<td>${txt}</td>`;
+  }).join('') + '</tr>';
+  document.getElementById('thresholdTable').innerHTML =
+    '<div style="margin:10px 0 4px;font-size:0.88rem;color:var(--muted)">Umbrales de esta actividad:</div>' +
+    '<table class="umbral-table">' + rows + '</table>';
+}
+
+function formatRange(u) {
+  if (!u) return '—';
+  const hasNum = u.min_numero !== null && u.min_numero !== undefined
+              || u.max_numero !== null && u.max_numero !== undefined;
+  if (hasNum) {
+    const mn = u.min_numero != null ? (u.min_operador || '>=') + fmt(u.min_numero) : '';
+    const mx = u.max_numero != null ? (u.max_operador || '<=') + fmt(u.max_numero) : '';
+    return [mn, mx].filter(Boolean).join('  ') || '—';
+  }
+  if (u.min_texto || u.max_texto) return (u.min_texto || '') + ' ' + (u.max_texto || '');
+  return '—';
+}
+function fmt(n) {
+  if (n === null || n === undefined) return '';
+  return n.toLocaleString('es-GT');
+}
+
+// ======================================================================
+// CALCULATION + AI CONFIDENCE
+// ======================================================================
+function calculate() {
+  const magnitud = parseFloat(document.getElementById('fld-magnitud').value);
+  if (isNaN(magnitud)) {
+    alert('Ingresa una magnitud numérica válida.');
+    return;
+  }
+  const descripcion = document.getElementById('fld-descripcion').value;
+  const act = currentSelection;
+  const userActividad = document.getElementById('fld-actividad').value;
+  const userFactor = document.getElementById('fld-factor').value;
+  const userUnidad = document.getElementById('fld-unidad').value;
+
+  const cats = ['C', 'C_PGA', 'B2', 'B1', 'A'];
+  let matched = null;
+  const fitsByCategory = {};
+  for (const c of cats) {
+    const u = act.umbrales[c] || {};
+    const fit = fitsIn(magnitud, u);
+    fitsByCategory[c] = fit;
+    if (fit.fits) matched = c;
+  }
+
+  // Confidence breakdown
+  const breakdown = computeConfidence(act, magnitud, fitsByCategory, matched,
+                                      userActividad, userFactor, userUnidad, descripcion);
+
+  currentResult = { act, magnitud, matched, breakdown, userActividad, userFactor, userUnidad, descripcion };
+  renderResult();
+  goToStep(4);
+}
+
+function fitsIn(v, u) {
+  if (!u) return { fits: false, distance: Infinity };
+  const hasMin = u.min_numero !== null && u.min_numero !== undefined;
+  const hasMax = u.max_numero !== null && u.max_numero !== undefined;
+  if (!hasMin && !hasMax) return { fits: false, distance: Infinity, empty: true };
+
+  let okMin = true, okMax = true;
+  if (hasMin) {
+    const op = u.min_operador || '>=';
+    okMin = (op === '>') ? (v > u.min_numero) : (v >= u.min_numero);
+  }
+  if (hasMax) {
+    const op = u.max_operador || '<=';
+    okMax = (op === '<') ? (v < u.max_numero) : (v <= u.max_numero);
+  }
+  const fits = okMin && okMax;
+
+  // Distance to nearest boundary (for margin calculation)
+  let dist = 0;
+  if (hasMin && hasMax) {
+    const mid = (u.min_numero + u.max_numero) / 2;
+    const halfRange = (u.max_numero - u.min_numero) / 2 || 1;
+    dist = Math.abs(v - mid) / halfRange;
+  } else if (hasMin) {
+    dist = Math.abs(v - u.min_numero) / (u.min_numero || 1);
+  } else if (hasMax) {
+    dist = Math.abs(v - u.max_numero) / (u.max_numero || 1);
+  }
+  return { fits, distance: dist, hasMin, hasMax };
+}
+
+function computeConfidence(act, magnitud, fits, matched,
+                           userActividad, userFactor, userUnidad, descripcion) {
+  // Component 1 — Threshold fit (0-100)
+  let threshold = 0;
+  if (matched) {
+    const f = fits[matched];
+    if (f.hasMin && f.hasMax) {
+      // Inside a bounded range: closer to center = higher
+      threshold = Math.max(60, 100 - f.distance * 40);
+    } else {
+      // Open range: confidence decreases if very close to the boundary
+      threshold = 85;
+      if (f.distance < 0.1) threshold = 70; // too close to boundary
+    }
+  } else {
+    threshold = 30;
+  }
+
+  // Component 2 — Activity match (user edited vs original)
+  let actMatch = 100;
+  if (userActividad && userActividad.trim() !== (act.actividad_economica || '').trim()) {
+    actMatch = stringSimilarity(userActividad, act.actividad_economica) * 100;
+  }
+
+  // Component 3 — Factor / Unit consistency
+  let factorMatch = 100;
+  if (userFactor && userFactor.trim() !== (act.factor_impacto || '').trim()) {
+    factorMatch = stringSimilarity(userFactor, act.factor_impacto) * 100;
+  }
+  let unitMatch = 100;
+  if (userUnidad && userUnidad.trim() !== (act.unidad_medida || '').trim()) {
+    unitMatch = stringSimilarity(userUnidad, act.unidad_medida) * 100;
+  }
+
+  // Component 4 — Catalog completeness (does this activity have numeric thresholds?)
+  const cats = ['C','C_PGA','B2','B1','A'];
+  const populated = cats.filter(c => {
+    const u = act.umbrales[c] || {};
+    return u.min_numero != null || u.max_numero != null || u.min_texto || u.max_texto;
+  }).length;
+  const catalog = Math.min(100, 40 + populated * 12);
+
+  // Component 5 — Descriptive consistency (boost if description is coherent)
+  let descBoost = 100;
+  if (descripcion && descripcion.length > 10) {
+    const nd = normalize(descripcion);
+    const aa = normalize(act.actividad_economica + ' ' + act.descripcion + ' ' + act.sector + ' ' + act.subsector);
+    const tokens = nd.split(' ').filter(t => t.length >= 3);
+    const hits = tokens.filter(t => aa.includes(t)).length;
+    descBoost = Math.min(100, 60 + (tokens.length ? (hits / tokens.length) * 40 : 0));
+  }
+
+  // Weighted average
+  const weights = { threshold: 0.40, actMatch: 0.20, factorMatch: 0.12, unitMatch: 0.08, catalog: 0.10, descBoost: 0.10 };
+  const total =
+      threshold * weights.threshold +
+      actMatch * weights.actMatch +
+      factorMatch * weights.factorMatch +
+      unitMatch * weights.unitMatch +
+      catalog * weights.catalog +
+      descBoost * weights.descBoost;
+
+  return {
+    total: Math.round(total),
+    components: [
+      { label: 'Ajuste a umbral numérico', value: Math.round(threshold), weight: weights.threshold },
+      { label: 'Coincidencia de actividad', value: Math.round(actMatch), weight: weights.actMatch },
+      { label: 'Coincidencia de factor',    value: Math.round(factorMatch), weight: weights.factorMatch },
+      { label: 'Coincidencia de unidad',    value: Math.round(unitMatch), weight: weights.unitMatch },
+      { label: 'Cobertura del catálogo',    value: Math.round(catalog), weight: weights.catalog },
+      { label: 'Consistencia descriptiva',  value: Math.round(descBoost), weight: weights.descBoost },
+    ]
+  };
+}
+
+function stringSimilarity(a, b) {
+  const na = normalize(a), nb = normalize(b);
+  if (!na || !nb) return 0.5;
+  if (na === nb) return 1;
+  const ta = new Set(na.split(' ').filter(t => t.length >= 3));
+  const tb = new Set(nb.split(' ').filter(t => t.length >= 3));
+  if (!ta.size || !tb.size) return 0.4;
+  let inter = 0;
+  for (const t of ta) if (tb.has(t)) inter++;
+  const uni = new Set([...ta, ...tb]).size;
+  return inter / uni;
+}
+
+// ======================================================================
+// RENDER RESULT
+// ======================================================================
+function renderResult() {
+  const { act, magnitud, matched, breakdown } = currentResult;
+  const catMap = { 'C':'cat-C', 'C_PGA':'cat-CPGA', 'B2':'cat-B2', 'B1':'cat-B1', 'A':'cat-A' };
+  const catDisplay = { 'C':'C', 'C_PGA':'C + PGA', 'B2':'B2', 'B1':'B1', 'A':'A' };
+
+  const resBox = document.getElementById('catResult');
+  resBox.className = 'category-result ' + (catMap[matched] || 'cat-NONE');
+  document.getElementById('catValue').textContent = matched ? catDisplay[matched] : 'No determinable';
+  document.getElementById('catConfidence').textContent = breakdown.total + '%';
+
+  document.getElementById('res-actividad').textContent = act.actividad_economica;
+  document.getElementById('res-sector').textContent = act.sector + ' / ' + (act.subsector_codigo ? act.subsector_codigo + '. ' : '') + act.subsector;
+  document.getElementById('res-ciiu').textContent = act.ciiu_4 || '—';
+  document.getElementById('res-magnitud').textContent = fmt(magnitud) + ' ' + (currentResult.userUnidad || '');
+  document.getElementById('res-factor').textContent = currentResult.userFactor || '—';
+  document.getElementById('res-unidad').textContent = currentResult.userUnidad || '—';
+
+  // Threshold table with highlighted match
+  const cats = ['C', 'C_PGA', 'B2', 'B1', 'A'];
+  const labels = { 'C':'C', 'C_PGA':'C + PGA', 'B2':'B2', 'B1':'B1', 'A':'A' };
+  let html = '<table class="umbral-table" style="margin-top:14px"><tr>';
+  html += cats.map(c => '<th>' + labels[c] + '</th>').join('');
+  html += '</tr><tr>';
+  html += cats.map(c => {
+    const u = act.umbrales[c] || {};
+    const sel = (c === matched) ? ' class="selected"' : '';
+    return '<td' + sel + '>' + formatRange(u) + '</td>';
+  }).join('');
+  html += '</tr></table>';
+  document.getElementById('res-umbrales').innerHTML = html;
+
+  // Warnings
+  const warns = [];
+  if (!matched) {
+    warns.push('⚠️ La magnitud indicada no cae en ninguno de los umbrales numéricos de esta actividad. Verifica la unidad de medida o consulta otra actividad del catálogo.');
+  }
+  if (act.requiere_guia_ambiental) {
+    warns.push('📘 Esta actividad requiere cumplir con la Guía Ambiental correspondiente.');
+  }
+  if (act.subsector_nota) {
+    warns.push('ℹ️ Nota del subsector: ' + act.subsector_nota);
+  }
+  if (breakdown.total < 60) {
+    warns.push('⚠️ Confianza baja. Se recomienda validar con un consultor ambiental registrado antes de tomar decisiones.');
+  }
+  document.getElementById('res-warnings').innerHTML =
+    warns.map(w => '<div class="warning">' + escapeHtml(w) + '</div>').join('');
+
+  // Confidence breakdown
+  const comps = breakdown.components.map(c => `
+    <div class="conf-bar">
+      <div class="conf-bar-label">${c.label}</div>
+      <div class="conf-bar-track"><div class="conf-bar-fill" style="width:${c.value}%"></div></div>
+      <div class="conf-bar-value">${c.value}%</div>
+    </div>`).join('');
+  document.getElementById('confBreakdown').innerHTML = `
+    <h4>🤖 ¿Cómo se calculó la confianza IA?</h4>
+    ${comps}
+    <p style="margin-top:10px;font-size:0.78rem;color:var(--muted)">
+      La confianza combina 6 señales con pesos ajustados: ajuste numérico al umbral (40%),
+      coincidencia de actividad (20%), factor (12%), unidad (8%), cobertura del catálogo (10%)
+      y consistencia descriptiva (10%). Un resultado ≥80% es altamente confiable; 60–80% es
+      aceptable pero conviene validar; &lt;60% requiere revisión manual.
+    </p>`;
+}
+
+// ======================================================================
+// BOOT
+// ======================================================================
+init();
 </script>
+
 </body>
 </html>
